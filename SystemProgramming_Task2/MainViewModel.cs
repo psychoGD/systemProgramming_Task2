@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace SystemProgramming_Task2
 {
@@ -65,7 +66,13 @@ namespace SystemProgramming_Task2
             {
                 Thread enterKeyThread = new Thread(() =>
                 {
-                    Datas.Add(word);
+                    datasTest.Add(word);
+                    //foreach (var item in datasTest)
+                    //{
+                    //    MessageBox.Show(item);
+                    //}
+                    Datas = new ObservableCollection<string>(DatasTest);
+                    Word = string.Empty;
                 });
                 enterKeyThread.Start();
             }
@@ -76,9 +83,46 @@ namespace SystemProgramming_Task2
         {
             EncryptedDatas= new ObservableCollection<string>();
             Datas= new ObservableCollection<string>();
-                       
+            DatasTest = new List<string>();           
             EnterKeyCommand = new RelayCommand<EventArgs>(EnterKeyCommandFunc);
 
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Tick += DeleteData;
+            PlayCommand = new RelayCommand(o =>
+            {
+                dispatcherTimer.Start();
+            });
+
+            PauseCommand = new RelayCommand(o =>
+            {
+                dispatcherTimer.Stop();
+            });
+            ResumeCommand = new RelayCommand(o =>
+            {
+                dispatcherTimer.Start();
+            });
+        }
+
+        private void DeleteData(object sender, EventArgs e)
+        {
+            if (Datas.Count > 0)
+            {
+                var data = Datas.First();
+                if (data != null)
+                {
+                    Datas.Remove(data);
+
+                    byte[] b = System.Text.ASCIIEncoding.ASCII.GetBytes(data);
+                    string encrypted = Convert.ToBase64String(b);
+
+                    EncryptedDatas.Add(encrypted);
+
+                    //For test
+                    //MessageBox.Show(data);
+                }
+            }
+            
         }
     }
 }
